@@ -1,8 +1,12 @@
+## Script that predicts 3 out of 7 possible class predictions and 3 segments per predicted class out of 56 possible
+## segments
+
 from flask import Flask, jsonify, request
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from collections import OrderedDict
 from nltk.corpus import stopwords
 import nltk
+
 nltk.download('stopwords')
 from unidecode import unidecode
 from tensorflow.keras.models import load_model
@@ -11,12 +15,16 @@ import pickle5 as pickle
 import traceback
 import re
 import sys
+
 sys.path.append('data/')
-from diccionario_group_seg import *
+from diccionario_group_seg import *  ##Dict for translating between group and segment numerical values to their actual
+
+## text meaning
 
 
 app = Flask(__name__)
 
+## We make use of 6 different tokenizers, one for each step on classification. Next uploads tokenizers
 with open('tokenizers/tokenizer_group.pickle', 'rb') as handle:
     tokenizer_group = pickle.load(handle)
 
@@ -35,9 +43,9 @@ with open('tokenizers/tokenizer_E.pickle', 'rb') as handle:
 with open('tokenizers/tokenizer_F.pickle', 'rb') as handle:
     tokenizer_f = pickle.load(handle)
 
+ciudad = load('ciudad.npy')  # Stopwords array for complementing stopwords
 
-ciudad = load('ciudad.npy')
-
+# As with tokenizers we use 6 different models, one for each step
 model_group = load_model('models_h5/group_weights.h5')
 model_b = load_model('models_h5/group_B.h5')
 model_c = load_model('models_h5/group_C.h5')
@@ -45,6 +53,7 @@ model_d = load_model('models_h5/group_D.h5')
 model_e = load_model('models_h5/group_E.h5')
 model_f = load_model('models_h5/group_F.h5')
 
+## Creation of stopwords array
 stopwords = unidecode(' '.join(stopwords.words("spanish")))
 stopwords = stopwords.split()
 stopwords = stopwords + ['y'] + ['o'] + ['s'] + ['b'] + ['c'] + ['i']
@@ -60,6 +69,7 @@ pattern_2 = r"[^a-z ]"
 
 token = 'group'
 
+# Dictionary containing tokenizer, padding lenght and model for each step of preddiction
 seq_lengh = {'group': [tokenizer_group, 214, model_group],
              1: [tokenizer_b, 242, model_b],
              2: [tokenizer_c, 247, model_c],
@@ -67,6 +77,7 @@ seq_lengh = {'group': [tokenizer_group, 214, model_group],
              4: [tokenizer_e, 232, model_e],
              5: [tokenizer_f, 351, model_f]}
 
+## Dict for translating Neural network model output to segment number
 seg_a = {0: '00'}
 seg_b = {0: '11', 1: '12', 2: '13', 3: '14', 4: '15'}
 seg_c = {0: '20', 1: '21', 2: '22', 3: '23', 4: '24', 5: '25', 6: '26', 7: '27'}
@@ -85,7 +96,9 @@ group_translate = {0: ['A', seg_a],
                    5: ['F', seg_f],
                    6: ['G', seg_a]}
 
+
 def clean_text(text):
+    ## Preprocessing of text, unify formats, lower strings, delete stop words
     text = unidecode(text)
     text = text.lower()
     text = re.sub(pattern_1, " ", text)
@@ -96,8 +109,10 @@ def clean_text(text):
     return text
 
 
-# token means value for seq_lengh dict
+# token means value for seq_lengh dict i.e. each step of modeling
 def process_text(text, token):
+    ## receives a string and step of modeling for converting the text into a numerical
+    #  sequence necesary as model input
     clean = clean_text(text)
     return pad_sequences(seq_lengh[token][0].texts_to_sequences([clean]), maxlen=seq_lengh[token][1])
 
@@ -109,13 +124,15 @@ def get_group_orders(predictions):
     for pred in sorted_preds:
         sorted_preds_index.append(list(predictions).index(pred))
     return sorted_preds_index
-	
+
+
 @app.route('/predict', methods=['POST'])
 def predict_api():
-   
+    ## prediction function, receives a text as input an returns most probable 3 clases with 3
+    # most propable segments for each predicted clases in a OrderedDict format.
     try:
         json_ = request.get_json()
-        
+
         text = json_["texto"]
         print(json_)
         if json_ == None:
@@ -128,70 +145,71 @@ def predict_api():
             return response
         else:
             text_sequence = process_text(json_["texto"], 'group')
-            if len(set(text_sequence[0])) >= 5:                
+            if len(set(text_sequence[0])) >= 5:
                 preds = seq_lengh['group'][2].predict(text_sequence)[0]
                 sorted_preds = get_group_orders(preds)[:3]
                 pred_dict = OrderedDict()
                 for pred in sorted_preds:
-                    if pred == 0 :
+                    if pred == 0:
                         segment = '10'
-                        pred_dict[group_translate.get(pred)[0]] = [segment,segment,segment]
+                        pred_dict[group_translate.get(pred)[0]] = [segment, segment, segment]
                     elif pred == 6:
                         segment = '95'
-                        pred_dict[group_translate.get(pred)[0]] = [segment,segment,segment]
+                        pred_dict[group_translate.get(pred)[0]] = [segment, segment, segment]
                     else:
-                        text_sequence = process_text(text,pred)
+                        text_sequence = process_text(text, pred)
                         preds = seq_lengh[pred][2].predict(text_sequence)[0]
                         sorted_preds = get_group_orders(preds)[:3]
-                        pred_dict[group_translate.get(pred)[0]] = [group_translate.get(pred)[1].get(seg) for seg in sorted_preds]
+                        pred_dict[group_translate.get(pred)[0]] = [group_translate.get(pred)[1].get(seg) for seg in
+                                                                   sorted_preds]
                 result = outputPredict(pred_dict)
             else:
                 result = 'No es un texto suficiente para realizar una predicción'
 
             print(result)
-            return jsonify(resultado = result)
-    
+            return jsonify(resultado=result)
+
     except Exception as e:
         return jsonify({'error': str(e), 'trace': traceback.format_exc()})
+
 
 def outputPredict(pred_dict):
     grupo_1 = list(pred_dict.items())[0][0]
     segmento_11 = list(pred_dict.items())[0][1][0]
-    segmento_12= list(pred_dict.items())[0][1][1]
-    segmento_13= list(pred_dict.items())[0][1][2]
+    segmento_12 = list(pred_dict.items())[0][1][1]
+    segmento_13 = list(pred_dict.items())[0][1][2]
     grupo_2 = list(pred_dict.items())[1][0]
-    segmento_21=list(pred_dict.items())[1][1][0]
-    segmento_22=list(pred_dict.items())[1][1][1]
-    segmento_23= list(pred_dict.items())[1][1][2]
+    segmento_21 = list(pred_dict.items())[1][1][0]
+    segmento_22 = list(pred_dict.items())[1][1][1]
+    segmento_23 = list(pred_dict.items())[1][1][2]
     grupo_3 = list(pred_dict.items())[2][0]
-    segmento_31= list(pred_dict.items())[2][1][0]
-    segmento_32= list(pred_dict.items())[2][1][1]
-    segmento_33= list(pred_dict.items())[2][1][2]    
-    
-    
-    result1 = 'Primer grupo sugerido \n'+ \
-          ''.join(grupo_1)+': '+''.join(diccionario_group_seg[grupo_1][0]) +\
-          '\nSegmentos con mayor probabilidad\n'\
-          +''.join(segmento_11)+': '+ ''.join(diccionario_group_seg[grupo_1][1][int(segmento_11)]) +'\n'\
-              +''.join(segmento_12)+': '+ ''.join(diccionario_group_seg[grupo_1][1][int(segmento_12)]) +'\n'\
-              +''.join(segmento_13)+': '+ ''.join(diccionario_group_seg[grupo_1][1][int(segmento_13)])
-    
-    result2 = '\n\n\nSegundo grupo sugerido \n'+ \
-          ''.join(grupo_2)+': '+''.join(diccionario_group_seg[grupo_2][0]) +\
-          '\nSegmentos con mayor probabilidad\n' \
-          +''.join(segmento_21)+': '+ ''.join(diccionario_group_seg[grupo_2][1][int(segmento_21)]) +'\n'\
-              +''.join(segmento_22)+': '+ ''.join(diccionario_group_seg[grupo_2][1][int(segmento_22)]) +'\n'\
-              +''.join(segmento_23)+': '+ ''.join(diccionario_group_seg[grupo_2][1][int(segmento_23)])
-    
-    result3 = '\n\n\nTercer grupo sugerido \n'+ \
-          ''.join(grupo_3)+': '+''.join(diccionario_group_seg[grupo_3][0]) \
-          +'\nSegmentos con mayor probabilidad\n' \
-          +''.join(segmento_31)+': '+ ''.join(diccionario_group_seg[grupo_3][1][int(segmento_31)]) +'\n'\
-              +''.join(segmento_32)+': '+ ''.join(diccionario_group_seg[grupo_3][1][int(segmento_32)]) +'\n'\
-              +''.join(segmento_33)+': '+ ''.join(diccionario_group_seg[grupo_3][1][int(segmento_33)])
-    
-    
-    return result1+result2+result3
-    
+    segmento_31 = list(pred_dict.items())[2][1][0]
+    segmento_32 = list(pred_dict.items())[2][1][1]
+    segmento_33 = list(pred_dict.items())[2][1][2]
+
+    result1 = 'Primer grupo sugerido \n' + \
+              ''.join(grupo_1) + ': ' + ''.join(diccionario_group_seg[grupo_1][0]) + \
+              '\nSegmentos con mayor probabilidad\n' \
+              + ''.join(segmento_11) + ': ' + ''.join(diccionario_group_seg[grupo_1][1][int(segmento_11)]) + '\n' \
+              + ''.join(segmento_12) + ': ' + ''.join(diccionario_group_seg[grupo_1][1][int(segmento_12)]) + '\n' \
+              + ''.join(segmento_13) + ': ' + ''.join(diccionario_group_seg[grupo_1][1][int(segmento_13)])
+
+    result2 = '\n\n\nSegundo grupo sugerido \n' + \
+              ''.join(grupo_2) + ': ' + ''.join(diccionario_group_seg[grupo_2][0]) + \
+              '\nSegmentos con mayor probabilidad\n' \
+              + ''.join(segmento_21) + ': ' + ''.join(diccionario_group_seg[grupo_2][1][int(segmento_21)]) + '\n' \
+              + ''.join(segmento_22) + ': ' + ''.join(diccionario_group_seg[grupo_2][1][int(segmento_22)]) + '\n' \
+              + ''.join(segmento_23) + ': ' + ''.join(diccionario_group_seg[grupo_2][1][int(segmento_23)])
+
+    result3 = '\n\n\nTercer grupo sugerido \n' + \
+              ''.join(grupo_3) + ': ' + ''.join(diccionario_group_seg[grupo_3][0]) \
+              + '\nSegmentos con mayor probabilidad\n' \
+              + ''.join(segmento_31) + ': ' + ''.join(diccionario_group_seg[grupo_3][1][int(segmento_31)]) + '\n' \
+              + ''.join(segmento_32) + ': ' + ''.join(diccionario_group_seg[grupo_3][1][int(segmento_32)]) + '\n' \
+              + ''.join(segmento_33) + ': ' + ''.join(diccionario_group_seg[grupo_3][1][int(segmento_33)])
+
+    return result1 + result2 + result3
+
+
 if __name__ == '__main__':
     app.run()
