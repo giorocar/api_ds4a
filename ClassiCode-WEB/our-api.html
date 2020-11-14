@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="generator" content="SuperHi">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>DS4A</title>
+		<link rel="stylesheet" href="/_base.css">
+		<link rel="stylesheet" href="/_fonts.css">
+		<link rel="stylesheet" href="/style.css">
+	</head>
+	<body>
+		<script src="/superhi.js"></script>
+		<div id="page-container">
+		  <div class="navbar">
+		    <p>
+		     <a href="index.html">ClassiCode</a>
+		  </p>
+		    <div>
+		    <a href="dashboard.html">Dashboard</a>
+		    <a href="classification.html">Clasificación</a>
+		    <a href="about-data.html">¿Cómo lo hacemos?</a>
+		    <a href="about-us.html">Nuestro equipo</a>
+		    <a href="our-api.html">Nuestra API</a>
+		  </div>
+		 </div>
+		
+		  <div id="content-wrap">
+		    <!-- all other page content -->
+		    <div class="text-container">
+		      <h1>Nuestra API!</h1>
+		      <br />
+		      <p>
+		        Primero iniciemos resolviendo la siguiente pregunta ¿Que es una API?:
+		      </p>
+		      <br />
+		      <p>
+		        Una API es un conjunto de definiciones y protocolos que se utiliza para desarrollar e integrar el software de las 				aplicaciones. API significa interfaz de programación de aplicaciones.
+		      </p>
+		      <br />
+		      <p>
+						Las API permiten que sus productos y servicios se comuniquen con otros, sin necesidad de saber cómo están 								implementados. Esto simplifica el desarrollo de las aplicaciones y permite ahorrar tiempo y dinero. Las API le 						otorgan flexibilidad; simplifican el diseño, la administración y el uso de las aplicaciones, y proporcionan 							oportunidades de innovación, lo cual es ideal al momento de diseñar herramientas y productos nuevos (o de 								gestionar los actuales).
+		      </p>
+		      <br />
+		      <p>
+		        <em>Fuente: <a href="https://www.redhat.com/es/topics/api/what-are-application-programming-interfaces#:~:text=Una%20API%20es%20un%20conjunto,de%20saber%20c%C3%B3mo%20est%C3%A1n%20implementados.">https://www.redhat.com/es/topics/api/what-are-application-programming-interfaces#:~:text=Una%20API%20es%20un%20conjunto,de%20saber%20c%C3%B3mo%20est%C3%A1n%20implementados.</a></em>
+		      </p>
+		      <br />
+		      <p>
+		      <img src="https://www.akamai.com/es/es/multimedia/images/video/akamai-api-video-thumbnail.jpg?imwidth=1366" class="ds4a-img" />
+		      </p>
+		      <br />
+		       <p>
+		        ¿Que hace nuestra API?:
+		      </p>
+		      <br />
+		      <p>
+		        Creamos un modelo que facilita a las entidades contratantes la asignación del código UNSPSC (The United Nations 					Standard Products and Services Code). Nuestro modelo predictivo fue entrenado con los datos de los contratos 							existentes, teniendo en cuenta variables de interés y métricas para su ajuste
+		      </p>
+		      <br />
+		      <p>
+		        Esta interfaz recibe un JSON por medio del method 'POST' con la descripcion del objeto de contratacion y retorna 					la predicion los grupos con mas probabilidad y sus respectivos 3 segmentos mas probables segun los códigos UNSPSC.
+		      </p>
+		      <br />
+		      <p>
+		        Codigo para HTTP:<br />
+		        <pre>
+		      <code class="language-javascript">
+		POST /predict? HTTP/1.1
+		Host: ec2-18-217-22-128.us-east-2.compute.amazonaws.com:8080
+		Content-Type: application/json
+		
+		{"texto":"prestacion de servicios como enfermera jefe para el hospital universitario del valle"}
+		</code>
+		    </pre>
+		      <br />
+		      <p>
+		        Como resultado al ejecutar el API se obtiene un JSON con el resultado de la predicion:
+		      </p>
+		      <br />
+		      <p>
+		        Respuesta API:<br />
+		        <pre>
+		      <code class="language-json">
+		{"resultado":"Primer grupo sugerido 
+		F: Servicios
+		Segmentos con mayor probabilidad
+		85: Servicios de Salud
+		80: Servicios de Gestión, Servicios Profesionales de Empresa y Servicios Administrativos
+		92: Servicios de Defensa Nacional, Orden Publico, Seguridad y Vigilancia
+		
+		
+		Segundo grupo sugerido 
+		E: Productos de uso final
+		Segmentos con mayor probabilidad
+		42: Equipo Médico, Accesorios y Suministros
+		51: Medicamentos y Productos Farmacéuticos
+		55: Publicaciones Impresas, Publicaciones Electrónicas y Accesorios
+		
+		
+		Tercer grupo sugerido 
+		B: Materias primas
+		Segmentos con mayor probabilidad
+		12: Material Químico incluyendo Bioquímicos y Materiales de Gas
+		14: Materiales y Productos de Papel
+		11: Material Mineral, Textil y  Vegetal y Animal No Comestible
+		"}
+		</code>
+		    </pre>
+		    </div>   
+		    
+		  </div>
+		
+		 <footer class="footer">
+		    <h1>
+		      Realizado con el apoyo de:
+		    </h1>
+		    <div>
+		      <img src="ds4a.svg" alt="Data Science 4 All Logo" class="ds4a-img" />
+		      <img src="mintic.svg" alt="MinTic Logo" class="mintic-img" />
+		    </div>
+		  </footer>
+		</div>
+		
+	</body>
+</html>
