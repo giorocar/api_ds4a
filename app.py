@@ -111,7 +111,7 @@ def clean_text(text):
 
 # token means value for seq_lengh dict i.e. each step of modeling
 def process_text(text, token):
-    ## receives a string and step of modeling for converting the text into a numerical
+    # receives a string and step of modeling for converting the text into a numerical
     #  sequence necesary as model input
     clean = clean_text(text)
     return pad_sequences(seq_lengh[token][0].texts_to_sequences([clean]), maxlen=seq_lengh[token][1])
@@ -128,8 +128,8 @@ def get_group_orders(predictions):
 
 @app.route('/predict', methods=['POST'])
 def predict_api():
-    ## prediction function, receives a text as input an returns most probable 3 clases with 3
-    # most propable segments for each predicted clases in a OrderedDict format.
+    # prediction function, receives a text as input an returns most probable 3 clases with 3
+    # most probable segments for each predicted clases in a OrderedDict format.
     try:
         json_ = request.get_json()
 
@@ -187,28 +187,49 @@ def outputPredict(pred_dict):
     segmento_32 = list(pred_dict.items())[2][1][1]
     segmento_33 = list(pred_dict.items())[2][1][2]
 
-    result1 = 'Primer grupo sugerido \n' + \
-              ''.join(grupo_1) + ': ' + ''.join(diccionario_group_seg[grupo_1][0]) + \
-              '\nSegmentos con mayor probabilidad\n' \
-              + ''.join(segmento_11) + ': ' + ''.join(diccionario_group_seg[grupo_1][1][int(segmento_11)]) + '\n' \
-              + ''.join(segmento_12) + ': ' + ''.join(diccionario_group_seg[grupo_1][1][int(segmento_12)]) + '\n' \
-              + ''.join(segmento_13) + ': ' + ''.join(diccionario_group_seg[grupo_1][1][int(segmento_13)])
+    dict_predict = {1:'\nPrimer grupo sugerido \n'+ \
+                        ''.join(grupo_1)+': '+''.join(diccionario_group_seg[grupo_1][0]),
+                    1.1: ''.join(segmento_11)+': '+ ''.join(diccionario_group_seg[grupo_1][1][int(segmento_11)]),
+                    1.2: ''.join(segmento_12)+': '+ ''.join(diccionario_group_seg[grupo_1][1][int(segmento_12)]),
+                    1.3: ''.join(segmento_13)+': '+ ''.join(diccionario_group_seg[grupo_1][1][int(segmento_13)]),
+                    2: '\n\n\nSegundo grupo sugerido \n'+ \
+                         ''.join(grupo_2)+': '+''.join(diccionario_group_seg[grupo_2][0]),
+                    2.1: ''.join(segmento_21) + ': ' + ''.join(diccionario_group_seg[grupo_2][1][int(segmento_21)]),
+                    2.2: ''.join(segmento_22) + ': ' + ''.join(diccionario_group_seg[grupo_2][1][int(segmento_22)]),
+                    2.3: ''.join(segmento_23) + ': ' + ''.join(diccionario_group_seg[grupo_2][1][int(segmento_23)]),
 
-    result2 = '\n\n\nSegundo grupo sugerido \n' + \
-              ''.join(grupo_2) + ': ' + ''.join(diccionario_group_seg[grupo_2][0]) + \
-              '\nSegmentos con mayor probabilidad\n' \
-              + ''.join(segmento_21) + ': ' + ''.join(diccionario_group_seg[grupo_2][1][int(segmento_21)]) + '\n' \
-              + ''.join(segmento_22) + ': ' + ''.join(diccionario_group_seg[grupo_2][1][int(segmento_22)]) + '\n' \
-              + ''.join(segmento_23) + ': ' + ''.join(diccionario_group_seg[grupo_2][1][int(segmento_23)])
+                    3:  '\n\n\nTercer grupo sugerido \n'+ \
+                           ''.join(grupo_3)+': '+''.join(diccionario_group_seg[grupo_3][0]),
+                    3.1: ''.join(segmento_31) + ': ' + ''.join(diccionario_group_seg[grupo_3][1][int(segmento_31)]),
+                    3.2: ''.join(segmento_32) + ': ' + ''.join(diccionario_group_seg[grupo_3][1][int(segmento_32)]),
+                    3.3: ''.join(segmento_33) + ': ' + ''.join(diccionario_group_seg[grupo_3][1][int(segmento_33)])
 
-    result3 = '\n\n\nTercer grupo sugerido \n' + \
-              ''.join(grupo_3) + ': ' + ''.join(diccionario_group_seg[grupo_3][0]) \
-              + '\nSegmentos con mayor probabilidad\n' \
-              + ''.join(segmento_31) + ': ' + ''.join(diccionario_group_seg[grupo_3][1][int(segmento_31)]) + '\n' \
-              + ''.join(segmento_32) + ': ' + ''.join(diccionario_group_seg[grupo_3][1][int(segmento_32)]) + '\n' \
-              + ''.join(segmento_33) + ': ' + ''.join(diccionario_group_seg[grupo_3][1][int(segmento_33)])
+                    }
 
-    return result1 + result2 + result3
+    #
+    # result1 = 'Primer grupo sugerido \n' + \
+    #           ''.join(grupo_1) + ': ' + ''.join(diccionario_group_seg[grupo_1][0]) + \
+    #           '\nSegmentos con mayor probabilidad\n' \
+    #           + ''.join(segmento_11) + ': ' + ''.join(diccionario_group_seg[grupo_1][1][int(segmento_11)]) + '\n' \
+    #           + ''.join(segmento_12) + ': ' + ''.join(diccionario_group_seg[grupo_1][1][int(segmento_12)]) + '\n' \
+    #           + ''.join(segmento_13) + ': ' + ''.join(diccionario_group_seg[grupo_1][1][int(segmento_13)])
+    #
+    # result2 = '\n\n\nSegundo grupo sugerido \n' + \
+    #           ''.join(grupo_2) + ': ' + ''.join(diccionario_group_seg[grupo_2][0]) + \
+    #           '\nSegmentos con mayor probabilidad\n' \
+    #           + ''.join(segmento_21) + ': ' + ''.join(diccionario_group_seg[grupo_2][1][int(segmento_21)]) + '\n' \
+    #           + ''.join(segmento_22) + ': ' + ''.join(diccionario_group_seg[grupo_2][1][int(segmento_22)]) + '\n' \
+    #           + ''.join(segmento_23) + ': ' + ''.join(diccionario_group_seg[grupo_2][1][int(segmento_23)])
+    #
+    # result3 = '\n\n\nTercer grupo sugerido \n' + \
+    #           ''.join(grupo_3) + ': ' + ''.join(diccionario_group_seg[grupo_3][0]) \
+    #           + '\nSegmentos con mayor probabilidad\n' \
+    #           + ''.join(segmento_31) + ': ' + ''.join(diccionario_group_seg[grupo_3][1][int(segmento_31)]) + '\n' \
+    #           + ''.join(segmento_32) + ': ' + ''.join(diccionario_group_seg[grupo_3][1][int(segmento_32)]) + '\n' \
+    #           + ''.join(segmento_33) + ': ' + ''.join(diccionario_group_seg[grupo_3][1][int(segmento_33)])
+    #
+    # return result1 + result2 + result3
+    return dict_predict
 
 
 if __name__ == '__main__':
